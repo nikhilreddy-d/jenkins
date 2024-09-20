@@ -1,7 +1,7 @@
 pipeline {
     agent { label 'DOTNET' }
     triggers {
-        pollSCM('* * * * *')
+        pollSCM('* * * * 1-5')
     }
     stages {
         stage('git') {
