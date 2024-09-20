@@ -16,15 +16,16 @@ pipeline {
         stage('build') {
             steps {
                 sh 'mvn clean package'
-                 }
+                withSonarQubeEnv(installationName: 'SONAR_CLOUD', credentialsId: 'SONAR_CLOUD')
+                {
+                   sh  'mvn clean verify sonar:sonar -Dsonar.host.url=https://sonarcloud.io -Dsonar.organization=jenkinsdec23 -Dsonar.projectKey=jenkinsdec23_test'
+                }
+            }
             post {
                 success {
                     archiveArtifacts artifacts: '**/spring-petclinic-*.jar'
                     junit testResults: '**/TEST-*.xml'
-                    mail subject: 'build stage succeded',
-                         from: 'build@learningthoughts.io',
-                         to: 'all@learningthoughts.io',
-                         body: "Refer to $BUILD_URL for more details"
+            
                 }
                 failure {
                     mail subject: 'build stage failed',
@@ -34,5 +35,12 @@ pipeline {
                 }
             }
         }
+        stage("Quality Gate") {
+            steps {
+              timeout(time: 1, unit: 'HOURS') {
+                waitForQualityGate abortPipeline: true
+              }
+            }
+        }
     }
-    
+}
